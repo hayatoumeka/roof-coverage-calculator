@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Roof Coverage Calculator</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-darker: #0a0a0a;
+            --bg-panel: #1e1e1e;
+            --accent: #00c8ff;
+            --accent-hover: #00a5d3;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --success: #4caf50;
+            --warning: #f44336;
+            --border: #333;
+            --input-bg: #2d2d2d;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        h1 {
+            color: var(--accent);
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-weight: 300;
+            letter-spacing: 1px;
+            grid-column: 1 / -1;
+            font-size: 28px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .input-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .result-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .calculator-card {
+            background-color: var(--bg-panel);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .input-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--bg-darker);
+            transition: all 0.3s ease;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .input-section:hover {
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.1);
+        }
+        
+        .input-section h3 {
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        
+        .input-section h3::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            margin-right: 8px;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 200, 255, 0.2);
+        }
+        
+        button {
+            background-color: var(--accent);
+            color: #121212;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0 5px 0;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 200, 255, 0.3);
+        }
+        
+        .result-panel {
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            background-color: var(--bg-panel);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--accent);
+        }
+        
+        .result-panel.warning {
+            background-color: rgba(244, 67, 54, 0.05);
+            border-left-color: var(--warning);
+        }
+        
+        .result-panel.success {
+            background-color: rgba(76, 175, 80, 0.05);
+            border-left-color: var(--success);
+        }
+        
+        .result-header {
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            color: var(--accent);
+        }
+        
+        .result-header i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .result-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        
+        .result-item:hover {
+            transform: translateX(3px);
+        }
+        
+        .result-item strong {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        
+        .result-item span {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            line-height: 1.6;
+        }
+        
+        .coverage-visualization {
+            margin: 20px 0;
+            height: 16px;
+            background-color: var(--bg-darker);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .coverage-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--accent));
+            border-radius: 8px;
+            transition: width 0.8s ease;
+        }
+        
+        .coverage-threshold {
+            position: absolute;
+            left: 33%;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: var(--warning);
+        }
+        
+        .coverage-threshold::after {
+            content: "33% Limit";
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--warning);
+            white-space: nowrap;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+        
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: auto;
+            }
+            
+            .input-column, .result-column {
+                overflow-y: visible;
+                padding-right: 0;
+            }
+            
+            .result-column {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            
+            .app-container {
+                padding: 15px;
+                height: auto;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calculator-card {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <h1>Solar Roof Coverage Calculator</h1>
+        
+        <div class="input-column">
+            <div class="calculator-card">
+                <div class="input-section">
+                    <h3>Roof Information</h3>
+                    <div class="input-group">
+                        <label for="roofArea">Total Roof Area (sqft)</label>
+                        <input type="number" id="roofArea" placeholder="Enter roof area in square feet">
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <h3>New Solar System</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="newLength">Panel Length (mm)</label>
+                            <input type="number" id="newLength" placeholder="Length in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="newWidth">Panel Width (mm)</label>
+                            <input type="number" id="newWidth" placeholder="Width in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="newCount">Number of Panels</label>
+                            <input type="number" id="newCount" placeholder="Quantity" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <h3>Existing Solar System 1</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="existing1Length">Panel Length (mm)</label>
+                            <input type="number" id="existing1Length" placeholder="Length in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing1Width">Panel Width (mm)</label>
+                            <input type="number" id="existing1Width" placeholder="Width in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing1Count">Number of Panels</label>
+                            <input type="number" id="existing1Count" placeholder="Quantity" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <h3>Existing Solar System 2</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="existing2Length">Panel Length (mm)</label>
+                            <input type="number" id="existing2Length" placeholder="Length in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing2Width">Panel Width (mm)</label>
+                            <input type="number" id="existing2Width" placeholder="Width in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing2Count">Number of Panels</label>
+                            <input type="number" id="existing2Count" placeholder="Quantity" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <h3>Existing Solar System 3</h3>
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="existing3Length">Panel Length (mm)</label>
+                            <input type="number" id="existing3Length" placeholder="Length in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing3Width">Panel Width (mm)</label>
+                            <input type="number" id="existing3Width" placeholder="Width in mm">
+                        </div>
+                        <div class="input-group">
+                            <label for="existing3Count">Number of Panels</label>
+                            <input type="number" id="existing3Count" placeholder="Quantity" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="calculateCoverage()">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 10px;">calculate</i>
+                    Calculate Roof Coverage
+                </button>
+            </div>
+        </div>
+        
+        <div class="result-column">
+            <div id="result" class="result-panel">
+                <h3 class="result-header">
+                    <i class="material-icons">solar_power</i>
+                    <span>Coverage Analysis</span>
+                </h3>
+                <p>Enter your roof and solar panel details to calculate coverage percentage and requirements.</p>
+                
+                <div class="coverage-visualization">
+                    <div class="coverage-threshold"></div>
+                    <div id="coverageBar" class="coverage-bar" style="width: 0%"></div>
+                </div>
+                
+                <div class="result-details">
+                    <div class="result-item">
+                        <strong>Total Roof Coverage</strong>
+                        <span id="coveragePercent">0%</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Total Solar Area</strong>
+                        <span id="totalSolarArea">0 sqft</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Roof Area</strong>
+                        <span id="roofAreaDisplay">0 sqft</span>
+                    </div>
+                </div>
+                
+                <div id="resultMessage" class="note">
+                    Results will appear here after calculation. If coverage exceeds 33%, 36" ridge setbacks are required.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function calculateCoverage() {
+            // Get roof area
+            const roofAreaSqft = parseFloat(document.getElementById('roofArea').value);
+            if (isNaN(roofAreaSqft) || roofAreaSqft <= 0) {
+                alert("Please enter a valid roof area in square feet.");
+                return;
+            }
+            
+            // Conversion factor: 1 mm² to ft²
+            const mmToFt = 0.00328084;
+            const mmSqToFtSq = mmToFt * mmToFt;
+            
+            // Calculate total solar area
+            let totalSolarAreaFt = 0;
+            
+            // New system
+            totalSolarAreaFt += calculateSystemArea('new', mmSqToFtSq);
+            
+            // Existing systems
+            totalSolarAreaFt += calculateSystemArea('existing1', mmSqToFtSq);
+            totalSolarAreaFt += calculateSystemArea('existing2', mmSqToFtSq);
+            totalSolarAreaFt += calculateSystemArea('existing3', mmSqToFtSq);
+            
+            // Calculate percentage
+            const coveragePercent = (totalSolarAreaFt / roofAreaSqft) * 100;
+            
+            // Update visualization
+            document.getElementById('coverageBar').style.width = `${Math.min(coveragePercent, 100)}%`;
+            
+            // Display result
+            const resultPanel = document.getElementById('result');
+            const resultMessage = document.getElementById('resultMessage');
+            
+            document.getElementById('coveragePercent').textContent = `${coveragePercent.toFixed(2)}%`;
+            document.getElementById('totalSolarArea').textContent = `${totalSolarAreaFt.toFixed(2)} sqft`;
+            document.getElementById('roofAreaDisplay').textContent = `${roofAreaSqft.toFixed(2)} sqft`;
+            
+            if (coveragePercent > 33) {
+                resultPanel.className = 'result-panel warning';
+                resultMessage.innerHTML = `
+                    <div style="color: var(--warning); margin-bottom: 15px;">
+                        <i class="material-icons" style="vertical-align: middle;">warning</i>
+                        <strong>Coverage Exceeds Limit</strong>
+                    </div>
+                    <p>Your solar panel coverage (${coveragePercent.toFixed(2)}%) exceeds the 33% threshold. <strong>36" ridge setbacks are required.</strong></p>
+                    <p style="margin-top: 10px;">Consider reducing the number of panels or exploring alternative installation options.</p>
+                `;
+            } else {
+                resultPanel.className = 'result-panel success';
+                resultMessage.innerHTML = `
+                    <div style="color: var(--success); margin-bottom: 15px;">
+                        <i class="material-icons" style="vertical-align: middle;">check_circle</i>
+                        <strong>Coverage Within Limits</strong>
+                    </div>
+                    <p>Your solar panel coverage (${coveragePercent.toFixed(2)}%) is within acceptable limits (≤33%).</p>
+                    <p style="margin-top: 10px;">Standard installation requirements apply.</p>
+                `;
+            }
+            
+            // Smooth scroll to results on mobile
+            if (window.innerWidth < 1200) {
+                resultPanel.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        function calculateSystemArea(prefix, conversionFactor) {
+            const length = parseFloat(document.getElementById(`${prefix}Length`).value) || 0;
+            const width = parseFloat(document.getElementById(`${prefix}Width`).value) || 0;
+            const count = parseFloat(document.getElementById(`${prefix}Count`).value) || 0;
+            
+            // Convert mm² to ft² and multiply by count
+            return (length * width * conversionFactor) * count;
+        }
+    </script>
+</body>
+</html>
